@@ -40,8 +40,8 @@ def generate_launch_description():
             get_package_share_directory('tiago_description'),
             'robots', 'tiago.urdf.xacro'), mappings=mappings)
         .robot_description_semantic(file_path=os.path.join(
-            get_package_share_directory('tiago_mtc_examples'),
-            'config', 'tiago_pal-gripper.srdf'))
+            get_package_share_directory('tiago_moveit_config'),
+            'config', 'srdf', 'tiago.srdf.xacro'))
         .robot_description_kinematics(file_path=os.path.join(
             get_package_share_directory('tiago_moveit_config'),
             'config', 'kinematics_kdl.yaml'))
@@ -50,10 +50,10 @@ def generate_launch_description():
             'config', 'controllers', 'controllers_pal-gripper.yaml'))
         .planning_pipelines(pipelines=['ompl'])
         .planning_scene_monitor({
-                                    'publish_planning_scene': True,
-                                    'publish_geometry_updates': True,
-                                    'publish_state_updates': True,
-                                    'publish_transforms_updates': True,
+                                'publish_planning_scene': True,
+                                'publish_geometry_updates': True,
+                                'publish_state_updates': True,
+                                'publish_transforms_updates': True,
         })
         .pilz_cartesian_limits(file_path=os.path.join(
             get_package_share_directory('tiago_moveit_config'),

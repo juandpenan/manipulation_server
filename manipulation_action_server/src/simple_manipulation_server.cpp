@@ -23,7 +23,6 @@ int main(int argc, char ** argv)
   
   auto node = rclcpp::Node::make_shared("simple_manipulation_server", node_options);
 
-  node->declare_parameter<std::string>("planning_group", "arm_torso");
   auto planning_group = node->get_parameter("planning_group").as_string();
 
   RCLCPP_INFO(node->get_logger(), "Simple Manipulation Server starting (group=%s)", planning_group.c_str());

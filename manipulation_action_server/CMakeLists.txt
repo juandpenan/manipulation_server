@@ -18,6 +18,7 @@ find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(moveit_task_constructor_core REQUIRED)
+find_package(moveit_ros_planning_interface REQUIRED)
 find_package(manipulation_interfaces REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(rclcpp_cascade_lifecycle REQUIRED)
@@ -42,6 +43,7 @@ set(dependencies
     rclcpp_components
     ament_index_cpp
     moveit_task_constructor_core
+    moveit_ros_planning_interface
     manipulation_interfaces
     rclcpp_cascade_lifecycle
     pcl_conversions
@@ -71,6 +73,10 @@ add_executable(server src/main_srv.cpp)
 ament_target_dependencies(server ${dependencies})
 target_link_libraries(server manipulation_server)
 
+add_executable(simple_manipulation_server src/simple_manipulation_server.cpp)
+ament_target_dependencies(simple_manipulation_server ${dependencies} moveit_ros_planning_interface)
+
+
 
 add_executable(client_predef src/main_predef.cpp)
 target_link_libraries(client_predef manipulation_client)
@@ -88,6 +94,7 @@ rclcpp_components_register_nodes(manipulation_server
 
 install(TARGETS
   server
+  simple_manipulation_server
   client_predef
   client_eef
   client_joint

@@ -29,6 +29,8 @@ int main(int argc, char ** argv)
 
   // Create MoveGroupInterface using the node
   auto move_group = std::make_shared<moveit::planning_interface::MoveGroupInterface>(node, planning_group);
+  move_group->setMaxVelocityScalingFactor(1.0);
+  move_group->setMaxAccelerationScalingFactor(1.0);
 
   using GoalHandleMoveEndEffector = rclcpp_action::ServerGoalHandle<MoveEndEffector>;
 

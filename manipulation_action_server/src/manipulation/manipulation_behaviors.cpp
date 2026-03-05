@@ -16,7 +16,9 @@ moveit::task_constructor::Task configure_task(
   task.loadRobotModel(node);
 
   task.setProperty("ik_frame", node->get_parameter("ik_frame").as_string());
-  task.setProperty("group", node->get_parameter("group").as_string());
+  // Use provided group_name if given, otherwise use default from parameters
+  std::string group = group_name.empty() ? node->get_parameter("group").as_string() : group_name;
+  task.setProperty("group", group);
   task.setProperty("eef", node->get_parameter("eef").as_string());
 
   RCLCPP_INFO(node->get_logger(), "Task %s configured", task_name.c_str());

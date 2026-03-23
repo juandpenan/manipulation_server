@@ -7,7 +7,8 @@ using namespace std::chrono_literals;
 
 moveit::task_constructor::Task configure_task(
   const std::string & task_name,
-  rclcpp::Node::SharedPtr node)
+  rclcpp::Node::SharedPtr node,
+  const std::string & group_name = "")
 {
 
   moveit::task_constructor::Task task;
@@ -17,11 +18,11 @@ moveit::task_constructor::Task configure_task(
 
   task.setProperty("ik_frame", node->get_parameter("ik_frame").as_string());
   // Use provided group_name if given, otherwise use default from parameters
-  std::string group = group_name.empty() ? node->get_parameter("group").as_string() : group_name;
+  std::string group = group_member.empty() ? node->get_parameter("group").as_string() : group_name;
   task.setProperty("group", group);
   task.setProperty("eef", node->get_parameter("eef").as_string());
 
-  RCLCPP_INFO(node->get_logger(), "Task %s configured", task_name.c_str());
+  RCLCPP_INFO(node->get_logger(), "Task %s configured with group: %s", task_name.c_str(), group.c_str());
 
   return task;
 }
@@ -68,9 +69,9 @@ moveit::task_constructor::Task move_to_predefined_task(
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
 {
-  RCLCPP_INFO(node->get_logger(), "Executing goal");
+  RCLCPP_INFO(node->get_logger(), "Executing move_to_predefined for group: %s, goal: %s", group_name.c_str(), goal_pose.c_str());
 
-  auto task = configure_task("move_to_predefined_task", node);
+  auto task = configure_task("move_to_predefined_task", node, group_name);
 
   {
     auto stage = std::make_unique<
@@ -97,9 +98,9 @@ moveit::task_constructor::Task move_joint_task(
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
 {
-  RCLCPP_INFO(node->get_logger(), "Executing goal");
+  RCLCPP_INFO(node->get_logger(), "Executing move_joint for group: %s, joint: %s, value: %f", group_name.c_str(), joint_name.c_str(), joint_value);
 
-  auto task = configure_task("move_joint_task", node);
+  auto task = configure_task("move_joint_task", node, group_name);
 
   {
     auto stage = std::make_unique<
@@ -112,8 +113,6 @@ moveit::task_constructor::Task move_joint_task(
       std::make_unique<moveit::task_constructor::stages::MoveTo>(
         "move_joint",
         interpolation_planner);
-    RCLCPP_INFO(node->get_logger(), "Setting group: %s", node->get_parameter("group").as_string().c_str());
-    // stage->setGroup(node->get_parameter("group").as_string());
     stage->setGroup(group_name);
     
     RCLCPP_INFO(node->get_logger(), "Setting goal: %s to %f", joint_name.c_str(), joint_value);

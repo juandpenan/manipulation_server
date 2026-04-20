@@ -84,7 +84,7 @@ moveit::task_constructor::Task move_to_predefined_task(
   std::string goal_pose,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner);
+  interpolation_planner);
 
 moveit::task_constructor::Task move_joint_task(
   std::string group_name,
@@ -92,22 +92,22 @@ moveit::task_constructor::Task move_joint_task(
   double joint_value,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner);
+  interpolation_planner);
 
 moveit::task_constructor::Task move_end_effector_task(
   geometry_msgs::msg::PoseStamped pose,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner);
+  interpolation_planner);
 
 moveit::task_constructor::Task pick_task(
   moveit_msgs::msg::CollisionObject object,
   moveit::task_constructor::Stage * & attach_object_stage,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner,
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath>
-    cartesian_planner,
+  cartesian_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface>
   psi);
 
@@ -116,26 +116,26 @@ moveit::task_constructor::Task place_task(
   geometry_msgs::msg::PoseStamped place_pose,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner,
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath>
-    cartesian_planner,
+  cartesian_planner,
   std::shared_ptr<moveit::task_constructor::solvers::PipelinePlanner>
-    sampling_planner,
+  sampling_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface>
-    psi);
+  psi);
 
 moveit::task_constructor::Task pick_and_place_task(
   moveit_msgs::msg::CollisionObject object,
   geometry_msgs::msg::PoseStamped place_pose,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner,
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath>
-    cartesian_planner,
+  cartesian_planner,
   std::shared_ptr<moveit::task_constructor::solvers::PipelinePlanner>
-    sampling_planner,
+  sampling_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface>
-    psi);
+  psi);
 
 moveit::task_constructor::Task detach_object_task(
   moveit_msgs::msg::CollisionObject object,
@@ -145,7 +145,7 @@ moveit::task_constructor::Task pick_from_pc_task(
   sensor_msgs::msg::PointCloud2 object,
   rclcpp::Node::SharedPtr node,
   std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
-    interpolation_planner);
+  interpolation_planner);
 
 std::vector<geometry_msgs::msg::PoseStamped> generate_grasp_poses(
   sensor_msgs::msg::PointCloud2 object,
@@ -161,7 +161,7 @@ bool execute_task(
 
 bool IsGripperClosed(rclcpp::Node::SharedPtr node);
 
-gpd::util::Cloud* process_point_cloud(sensor_msgs::msg::PointCloud2 pc);
+gpd::util::Cloud * process_point_cloud(sensor_msgs::msg::PointCloud2 pc);
 
 
 } // end namespace manipulation

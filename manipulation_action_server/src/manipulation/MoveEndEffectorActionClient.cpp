@@ -19,12 +19,12 @@ MoveEndEffectorActionClient::MoveEndEffectorActionClient()
   get_parameter("x_eef", pose.pose.position.x);
   get_parameter("y_eef", pose.pose.position.y);
   get_parameter("z_eef", pose.pose.position.z);
-  
+
   goal_msg.pose = pose;
 
   RCLCPP_INFO(
     get_logger(), "Sending goal to move end effector to pose [%.2f, %.2f, %.2f]",
-      pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
+    pose.pose.position.x, pose.pose.position.y, pose.pose.position.z);
 
   send_goal(goal_msg);
 }

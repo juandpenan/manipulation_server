@@ -22,7 +22,9 @@ moveit::task_constructor::Task configure_task(
   task.setProperty("group", group);
   task.setProperty("eef", node->get_parameter("eef").as_string());
 
-  RCLCPP_INFO(node->get_logger(), "Task %s configured with group: %s", task_name.c_str(), group.c_str());
+  RCLCPP_INFO(
+    node->get_logger(), "Task %s configured with group: %s", task_name.c_str(),
+    group.c_str());
 
   return task;
 }
@@ -67,9 +69,12 @@ moveit::task_constructor::Task move_to_predefined_task(
   std::string group_name,
   std::string goal_pose,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner)
 {
-  RCLCPP_INFO(node->get_logger(), "Executing move_to_predefined for group: %s, goal: %s", group_name.c_str(), goal_pose.c_str());
+  RCLCPP_INFO(
+    node->get_logger(), "Executing move_to_predefined for group: %s, goal: %s",
+    group_name.c_str(), goal_pose.c_str());
 
   auto task = configure_task("move_to_predefined_task", node, group_name);
 
@@ -96,9 +101,12 @@ moveit::task_constructor::Task move_joint_task(
   std::string joint_name,
   double joint_value,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner)
 {
-  RCLCPP_INFO(node->get_logger(), "Executing move_joint for group: %s, joint: %s, value: %f", group_name.c_str(), joint_name.c_str(), joint_value);
+  RCLCPP_INFO(
+    node->get_logger(), "Executing move_joint for group: %s, joint: %s, value: %f",
+    group_name.c_str(), joint_name.c_str(), joint_value);
 
   auto task = configure_task("move_joint_task", node, group_name);
 
@@ -111,10 +119,10 @@ moveit::task_constructor::Task move_joint_task(
   {
     auto stage =
       std::make_unique<moveit::task_constructor::stages::MoveTo>(
-        "move_joint",
-        interpolation_planner);
+      "move_joint",
+      interpolation_planner);
     stage->setGroup(group_name);
-    
+
     RCLCPP_INFO(node->get_logger(), "Setting goal: %s to %f", joint_name.c_str(), joint_value);
     stage->setGoal(std::map<std::string, double>{{joint_name, joint_value}});
 
@@ -127,26 +135,29 @@ moveit::task_constructor::Task move_joint_task(
 moveit::task_constructor::Task move_end_effector_task(
   geometry_msgs::msg::PoseStamped pose,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner)
 {
   RCLCPP_INFO(node->get_logger(), "Executing goal");
 
   auto task = configure_task("move_eef_task", node);
 
   auto cartesian = std::make_shared<moveit::task_constructor::solvers::CartesianPath>();
-	cartesian->setJumpThreshold(2.0);
+  cartesian->setJumpThreshold(2.0);
 
   const auto ptp = [&node]() {
-		auto pp{ std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "pilz_industrial_motion_planner") };
-		pp->setPlannerId("PTP");
-		return pp;
-	}();
+    auto pp{std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(
+        node,
+        "pilz_industrial_motion_planner")};
+    pp->setPlannerId("PTP");
+    return pp;
+  }();
 
   const auto rrtconnect = [&node]() {
-		auto pp{ std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "ompl") };
-		pp->setPlannerId("RRTConnect");
-		return pp;
-	}();
+    auto pp{std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "ompl")};
+    pp->setPlannerId("RRTConnect");
+    return pp;
+  }();
 
   {
     auto stage = std::make_unique<
@@ -156,18 +167,18 @@ moveit::task_constructor::Task move_end_effector_task(
   }
 
   auto fallbacks = std::make_unique<moveit::task_constructor::Fallbacks>("posible_solutions");
-  auto add_to_fallbacks{ [&](auto& solver, auto& name) {
-		auto move_to = std::make_unique<moveit::task_constructor::stages::MoveTo>(name, solver);
-    move_to->setIKFrame(node->get_parameter("ik_frame").as_string());
-		move_to->setGroup(node->get_parameter("arm_group").as_string());
-		move_to->setGoal(pose);
-		fallbacks->add(std::move(move_to));
-	} };
+  auto add_to_fallbacks{[&](auto & solver, auto & name) {
+      auto move_to = std::make_unique<moveit::task_constructor::stages::MoveTo>(name, solver);
+      move_to->setIKFrame(node->get_parameter("ik_frame").as_string());
+      move_to->setGroup(node->get_parameter("arm_group").as_string());
+      move_to->setGoal(pose);
+      fallbacks->add(std::move(move_to));
+    }};
 
   add_to_fallbacks(cartesian, "Cartesian path");
   add_to_fallbacks(interpolation_planner, "Interpolation path");
-	add_to_fallbacks(ptp, "PTP path");
-	add_to_fallbacks(rrtconnect, "RRT path");
+  add_to_fallbacks(ptp, "PTP path");
+  add_to_fallbacks(rrtconnect, "RRT path");
 
 
   task.add(std::move(fallbacks));
@@ -179,7 +190,8 @@ moveit::task_constructor::Task pick_task(
   moveit_msgs::msg::CollisionObject object,
   moveit::task_constructor::Stage * & attach_object_stage,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner,
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath> cartesian_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> psi)
 {
@@ -269,10 +281,10 @@ moveit::task_constructor::Task pick_task(
       task.properties().exposeTo(grasp_poses->properties(), {"eef", "group", "ik_frame"});
       grasp_poses->properties().configureInitFrom(
         moveit::task_constructor::Stage::PARENT,
-        {"eef", "group", "ik_frame"});    
+        {"eef", "group", "ik_frame"});
 
       {
-        // asumes object is a cylinder: [height, radious] 
+        // asumes object is a cylinder: [height, radious]
 
         // we define 5 iterations for the object height:
         auto botton_object_corner = -object.primitives[0].dimensions[0] / 2;
@@ -282,7 +294,7 @@ moveit::task_constructor::Task pick_task(
 
         for (int i = 0; i < height_iterations; ++i) {
           auto stage = std::make_unique<moveit::task_constructor::stages::GenerateGraspPose>(
-          "generate_grasp_pose");
+            "generate_grasp_pose");
           stage->properties().configureInitFrom(moveit::task_constructor::Stage::PARENT);
           stage->properties().set("marker_ns", "grasp_pose");
           stage->setPreGraspPose(open_pose);
@@ -318,7 +330,7 @@ moveit::task_constructor::Task pick_task(
           grasp_poses->insert(std::move(wrapper));
         }
         auto stage = std::make_unique<moveit::task_constructor::stages::GenerateGraspPose>(
-        "generate_grasp_pose_top");
+          "generate_grasp_pose_top");
         stage->properties().configureInitFrom(moveit::task_constructor::Stage::PARENT);
         stage->properties().set("marker_ns", "grasp_pose");
         stage->setPreGraspPose(open_pose);
@@ -329,11 +341,11 @@ moveit::task_constructor::Task pick_task(
         // This is the transform from the object frame to the end-effector frame THIS IS SO IMPORTANT
         Eigen::Isometry3d grasp_frame_transform;
         Eigen::Quaterniond q = Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitX()) *
-          Eigen::AngleAxisd(-M_PI/2, Eigen::Vector3d::UnitY()) *
+          Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitY()) *
           Eigen::AngleAxisd(0.0, Eigen::Vector3d::UnitZ());
         grasp_frame_transform.linear() = q.matrix();
         //TO DO: adapt to object shape
-        grasp_frame_transform.translation().x() = botton_object_corner*-1 + 0.03;
+        grasp_frame_transform.translation().x() = botton_object_corner * -1 + 0.03;
 
         // Compute IK
         auto wrapper =
@@ -349,7 +361,7 @@ moveit::task_constructor::Task pick_task(
         wrapper->properties().configureInitFrom(
           moveit::task_constructor::Stage::INTERFACE,
           {"target_pose"});
-          grasp_poses->insert(std::move(wrapper));
+        grasp_poses->insert(std::move(wrapper));
 
       }
       grasp->insert(std::move(grasp_poses));
@@ -421,7 +433,8 @@ void PlaceAfterPickTask(
   moveit_msgs::msg::CollisionObject object,
   geometry_msgs::msg::PoseStamped place_pose,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner,
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath> cartesian_planner,
   std::shared_ptr<moveit::task_constructor::solvers::PipelinePlanner> sampling_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> psi,
@@ -536,7 +549,8 @@ moveit::task_constructor::Task pick_and_place_task(
   moveit_msgs::msg::CollisionObject object,
   geometry_msgs::msg::PoseStamped place_pose,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner,
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath> cartesian_planner,
   std::shared_ptr<moveit::task_constructor::solvers::PipelinePlanner> sampling_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> psi)
@@ -569,7 +583,8 @@ moveit::task_constructor::Task place_task(
   moveit_msgs::msg::CollisionObject object,
   geometry_msgs::msg::PoseStamped place_pose,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner,
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner,
   std::shared_ptr<moveit::task_constructor::solvers::CartesianPath> cartesian_planner,
   std::shared_ptr<moveit::task_constructor::solvers::PipelinePlanner> sampling_planner,
   std::shared_ptr<moveit::planning_interface::PlanningSceneInterface> psi)
@@ -631,7 +646,8 @@ moveit::task_constructor::Task detach_object_task(
 moveit::task_constructor::Task pick_from_pc_task(
   sensor_msgs::msg::PointCloud2 object,
   rclcpp::Node::SharedPtr node,
-  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner> interpolation_planner)
+  std::shared_ptr<moveit::task_constructor::solvers::JointInterpolationPlanner>
+  interpolation_planner)
 {
   RCLCPP_INFO_STREAM(node->get_logger(), "Executing pick from pc");
 
@@ -652,7 +668,7 @@ moveit::task_constructor::Task pick_from_pc_task(
   node->get_parameter("gripper_closed", gripper_min_limits);
   node->get_parameter("gripper_open", gripper_max_limits);
 
-  gpd::GraspDetector* grasp_detector = new gpd::GraspDetector(config_file);
+  gpd::GraspDetector * grasp_detector = new gpd::GraspDetector(config_file);
   RCLCPP_INFO_STREAM(node->get_logger(), "Grasp detector created");
 
   auto cloud_camera = process_point_cloud(object);
@@ -678,19 +694,21 @@ moveit::task_constructor::Task pick_from_pc_task(
   RCLCPP_INFO_STREAM(node->get_logger(), "Current state added");
 
   auto cartesian_planner = std::make_shared<moveit::task_constructor::solvers::CartesianPath>();
-	cartesian_planner->setJumpThreshold(2.0);
+  cartesian_planner->setJumpThreshold(2.0);
 
   const auto ptp = [&node]() {
-		auto pp{ std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "pilz_industrial_motion_planner") };
-		pp->setPlannerId("PTP");
-		return pp;
-	}();
+    auto pp{std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(
+        node,
+        "pilz_industrial_motion_planner")};
+    pp->setPlannerId("PTP");
+    return pp;
+  }();
 
   const auto rrtconnect = [&node]() {
-		auto pp{ std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "ompl") };
-		pp->setPlannerId("RRTConnect");
-		return pp;
-	}();
+    auto pp{std::make_shared<moveit::task_constructor::solvers::PipelinePlanner>(node, "ompl")};
+    pp->setPlannerId("RRTConnect");
+    return pp;
+  }();
 
   const auto interpolation = [&node]() {
     auto pp{std::make_shared<moveit::task_constructor::solvers::JointInterpolationPlanner>()};
@@ -699,44 +717,43 @@ moveit::task_constructor::Task pick_from_pc_task(
 
   auto fallbacks = std::make_unique<moveit::task_constructor::Fallbacks>("posible_solutions");
 
-  auto add_to_fallbacks{ [&](auto& solver, auto& name, auto& pose, auto& width) {
-    // auto serial = std::make_unique<moveit::task_constructor::SerialContainer>("move_nd_close");
-		auto move_to = std::make_unique<moveit::task_constructor::stages::MoveTo>(name, solver);
-    // auto close_gripper = std::make_unique<moveit::task_constructor::stages::MoveTo>("close_gripper", solver);
+  auto add_to_fallbacks{[&](auto & solver, auto & name, auto & pose, auto & width) {
+      // auto serial = std::make_unique<moveit::task_constructor::SerialContainer>("move_nd_close");
+      auto move_to = std::make_unique<moveit::task_constructor::stages::MoveTo>(name, solver);
+      // auto close_gripper = std::make_unique<moveit::task_constructor::stages::MoveTo>("close_gripper", solver);
 
-    // close_gripper->setGroup(gripper_group);  
-    // close_gripper->setGoal(std::map<std::string, double>{{gripper_joints[0], gripper_min_limits[0]},
-                                                  // {gripper_joints[1], width}});
+      // close_gripper->setGroup(gripper_group);
+      // close_gripper->setGoal(std::map<std::string, double>{{gripper_joints[0], gripper_min_limits[0]},
+      // {gripper_joints[1], width}});
 
-		move_to->setGroup(node->get_parameter("arm_group").as_string());
+      move_to->setGroup(node->get_parameter("arm_group").as_string());
 
-    // Eigen::Isometry3d grasp_frame_transform;
-    // //TO DO: adapt to object shape
-    // grasp_frame_transform.translation().x() = pose.pose.position.x;
-    // grasp_frame_transform.translation().y() = pose.pose.position.y;
-    // grasp_frame_transform.translation().z() = pose.pose.position.z;
-    // grasp_frame_transform.linear() = Eigen::Quaterniond(pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z).matrix();
+      // Eigen::Isometry3d grasp_frame_transform;
+      // //TO DO: adapt to object shape
+      // grasp_frame_transform.translation().x() = pose.pose.position.x;
+      // grasp_frame_transform.translation().y() = pose.pose.position.y;
+      // grasp_frame_transform.translation().z() = pose.pose.position.z;
+      // grasp_frame_transform.linear() = Eigen::Quaterniond(pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z).matrix();
 
-    move_to->setIKFrame(node->get_parameter("ik_frame").as_string());
-		move_to->setGoal(pose);
+      move_to->setIKFrame(node->get_parameter("ik_frame").as_string());
+      move_to->setGoal(pose);
 
-    // serial->insert(std::move(move_to));
-    // RCLCPP_INFO_STREAM(node->get_logger(), "Move to added");
-    // serial->insert(std::move(close_gripper));
-    RCLCPP_INFO_STREAM(node->get_logger(), "Close gripper added");
+      // serial->insert(std::move(move_to));
+      // RCLCPP_INFO_STREAM(node->get_logger(), "Move to added");
+      // serial->insert(std::move(close_gripper));
+      RCLCPP_INFO_STREAM(node->get_logger(), "Close gripper added");
 
-		fallbacks->add(std::move(move_to));
-	} };
+      fallbacks->add(std::move(move_to));
+    }};
 
-  if (candidates.empty())
-  {
+  if (candidates.empty()) {
     RCLCPP_ERROR_STREAM(node->get_logger(), "No grasping candidates found");
     return task;
   }
   // for (const auto& grasp : candidates)
   // {
   //   geometry_msgs::msg::PoseStamped pose;
-    
+
   //   // auto grasp = std::move(candidates[0]);
   //   pose.header.frame_id = object.header.frame_id;
 
@@ -774,7 +791,7 @@ moveit::task_constructor::Task pick_from_pc_task(
   // return task;
 
 
- ///// COMPLETE PICK TASK :
+  ///// COMPLETE PICK TASK :
 
   RCLCPP_INFO_STREAM(node->get_logger(), "Executing pick");
   // psi->applyCollisionObject(object);
@@ -858,23 +875,22 @@ moveit::task_constructor::Task pick_from_pc_task(
       task.properties().exposeTo(grasp_poses->properties(), {"eef", "group", "ik_frame"});
       grasp_poses->properties().configureInitFrom(
         moveit::task_constructor::Stage::PARENT,
-        {"eef", "group", "ik_frame"});    
+        {"eef", "group", "ik_frame"});
 
       {
 
-        for (const auto& grasp : candidates)
-        {
+        for (const auto & grasp : candidates) {
           geometry_msgs::msg::PoseStamped pose;
           auto stage = std::make_unique<moveit::task_constructor::stages::GeneratePose>(
-          "generate_grasp_pose");
-           stage->properties().configureInitFrom(moveit::task_constructor::Stage::PARENT);
+            "generate_grasp_pose");
+          stage->properties().configureInitFrom(moveit::task_constructor::Stage::PARENT);
           stage->properties().set("marker_ns", "grasp_pose");
           // stage->setPreGraspPose(open_pose);
           // stage->setObject(object.id);
           // stage->setAngleDelta(M_PI / 3);
-          stage->setMonitoredStage(current_state_ptr);  
+          stage->setMonitoredStage(current_state_ptr);
 
-          
+
           // auto grasp = std::move(candidates[0]);
           pose.header.frame_id = object.header.frame_id;
 
@@ -884,7 +900,10 @@ moveit::task_constructor::Task pick_from_pc_task(
 
           //print header frame id
           RCLCPP_INFO_STREAM(node->get_logger(), "Header frame id: " << pose.header.frame_id);
-          RCLCPP_INFO_STREAM(node->get_logger(), "Grasp position XYZ: " << grasp->getPosition().x() << " " << grasp->getPosition().y() << " " << grasp->getPosition().z());
+          RCLCPP_INFO_STREAM(
+            node->get_logger(),
+            "Grasp position XYZ: " << grasp->getPosition().x() << " " << grasp->getPosition().y() <<
+              " " << grasp->getPosition().z());
 
           auto orientation_matrix = grasp->getOrientation();
           Eigen::Quaterniond q(orientation_matrix);
@@ -893,10 +912,12 @@ moveit::task_constructor::Task pick_from_pc_task(
           pose.pose.orientation.y = q.y();
           pose.pose.orientation.z = q.z();
           pose.pose.orientation.w = q.w();
-          RCLCPP_INFO_STREAM(node->get_logger(), "Grasp orientation XYZW: " << q.x() << " " << q.y() << " " << q.z() << " " << q.w());
+          RCLCPP_INFO_STREAM(
+            node->get_logger(),
+            "Grasp orientation XYZW: " << q.x() << " " << q.y() << " " << q.z() << " " << q.w());
 
           stage->setPose(pose);
-          
+
           // Compute IK
           auto wrapper =
             std::make_unique<moveit::task_constructor::stages::ComputeIK>(
@@ -912,7 +933,7 @@ moveit::task_constructor::Task pick_from_pc_task(
             moveit::task_constructor::Stage::INTERFACE,
             {"target_pose"});
           grasp_poses->insert(std::move(wrapper));
-  
+
         }
 
       }
@@ -957,7 +978,7 @@ moveit::task_constructor::Task pick_from_pc_task(
 
 }
 
-std::vector<geometry_msgs::msg::PoseStamped>  generate_grasp_poses(
+std::vector<geometry_msgs::msg::PoseStamped> generate_grasp_poses(
   sensor_msgs::msg::PointCloud2 object,
   rclcpp::Node::SharedPtr node)
 {
@@ -982,7 +1003,7 @@ std::vector<geometry_msgs::msg::PoseStamped>  generate_grasp_poses(
   node->get_parameter("gripper_closed", gripper_min_limits);
   node->get_parameter("gripper_open", gripper_max_limits);
 
-  gpd::GraspDetector* grasp_detector = new gpd::GraspDetector(config_file);
+  gpd::GraspDetector * grasp_detector = new gpd::GraspDetector(config_file);
   RCLCPP_INFO_STREAM(node->get_logger(), "Grasp detector created");
 
   auto cloud_camera = process_point_cloud(object);
@@ -992,24 +1013,25 @@ std::vector<geometry_msgs::msg::PoseStamped>  generate_grasp_poses(
   auto candidates = grasp_detector->detectGrasps(*cloud_camera);
   RCLCPP_INFO_STREAM(node->get_logger(), "Grasping candidates detected");
 
-  if (candidates.empty())
-  {
+  if (candidates.empty()) {
     RCLCPP_ERROR_STREAM(node->get_logger(), "No grasping candidates found");
     return poses;
   }
-  for (const auto& grasp : candidates)
-  {
+  for (const auto & grasp : candidates) {
     geometry_msgs::msg::PoseStamped pose;
-    
+
     pose.header.frame_id = object.header.frame_id;
 
     pose.pose.position.x = grasp->getPosition().x();
     pose.pose.position.y = grasp->getPosition().y();
     pose.pose.position.z = grasp->getPosition().z();
- 
+
     //print header frame id
     RCLCPP_INFO_STREAM(node->get_logger(), "Header frame id: " << pose.header.frame_id);
-    RCLCPP_INFO_STREAM(node->get_logger(), "Grasp position XYZ: " << grasp->getPosition().x() << " " << grasp->getPosition().y() << " " << grasp->getPosition().z());
+    RCLCPP_INFO_STREAM(
+      node->get_logger(),
+      "Grasp position XYZ: " << grasp->getPosition().x() << " " << grasp->getPosition().y() <<
+        " " << grasp->getPosition().z());
 
     auto orientation_matrix = grasp->getOrientation();
     Eigen::Quaterniond q(orientation_matrix);
@@ -1018,7 +1040,9 @@ std::vector<geometry_msgs::msg::PoseStamped>  generate_grasp_poses(
     pose.pose.orientation.y = q.y();
     pose.pose.orientation.z = q.z();
     pose.pose.orientation.w = q.w();
-    RCLCPP_INFO_STREAM(node->get_logger(), "Grasp orientation XYZW: " << q.x() << " " << q.y() << " " << q.z() << " " << q.w());
+    RCLCPP_INFO_STREAM(
+      node->get_logger(),
+      "Grasp orientation XYZW: " << q.x() << " " << q.y() << " " << q.z() << " " << q.w());
 
     poses.push_back(pose);
   }
@@ -1088,7 +1112,7 @@ bool evaluate_joint(
             // Check if the value at the corresponding index is within the tolerance
             return std::abs(
               res->scene.robot_state.joint_state.position[index] - desired_value) <=
-            tolerances[index];
+                   tolerances[index];
           } else {
             // Joint name not found in robot state
             return false;
@@ -1100,22 +1124,21 @@ bool evaluate_joint(
   return are_joints_values_within_tolerance;
 }
 
-gpd::util::Cloud* process_point_cloud(sensor_msgs::msg::PointCloud2 pc)
+gpd::util::Cloud * process_point_cloud(sensor_msgs::msg::PointCloud2 pc)
 {
-  Eigen::Matrix3Xd view_points(3,1);
+  Eigen::Matrix3Xd view_points(3, 1);
   view_points << 0.0, 0.0, 0.0;
-  gpd::util::Cloud* cloud_camera;
+  gpd::util::Cloud * cloud_camera;
   // matbe we have to set another view point rather than 0 0 0
 
-  if (pc.fields.size() == 6 && pc.fields[3].name == "normal_x" && pc.fields[4].name == "normal_y" && pc.fields[5].name == "normal_z")
+  if (pc.fields.size() == 6 && pc.fields[3].name == "normal_x" && pc.fields[4].name == "normal_y" &&
+    pc.fields[5].name == "normal_z")
   {
     PointCloudRGBA::Ptr cloud(new PointCloudRGBA);
     pcl::fromROSMsg(pc, *cloud);
     cloud_camera = new gpd::util::Cloud(cloud, 0, view_points);
 
-  }
-  else
-  {
+  } else {
     PointCloudRGBA::Ptr cloud(new PointCloudRGBA);
     pcl::fromROSMsg(pc, *cloud);
     cloud_camera = new gpd::util::Cloud(cloud, 0, view_points);

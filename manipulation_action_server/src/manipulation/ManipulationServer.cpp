@@ -259,30 +259,33 @@ ManipulationServer::handle_generate_grasp_poses_goal(
 
 rclcpp_action::CancelResponse
 ManipulationServer::handle_move_to_predefined_cancel(
-  const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::MoveToPredefined>> goal_handle)
+  const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::
+  MoveToPredefined>> goal_handle)
 {
   RCLCPP_INFO(this->get_logger(), "Canceling goal: move arm to predefined pose");
   (void)goal_handle;
   return rclcpp_action::CancelResponse::ACCEPT;
 }
 
-  rclcpp_action::CancelResponse
-  ManipulationServer::handle_move_joint_cancel(
-    const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::MoveJoint>> goal_handle)
-  {
-    RCLCPP_INFO(this->get_logger(), "Canceling goal: move group");
-    (void)goal_handle;
-    return rclcpp_action::CancelResponse::ACCEPT;
-  }
+rclcpp_action::CancelResponse
+ManipulationServer::handle_move_joint_cancel(
+  const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::MoveJoint>>
+  goal_handle)
+{
+  RCLCPP_INFO(this->get_logger(), "Canceling goal: move group");
+  (void)goal_handle;
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
 
-  rclcpp_action::CancelResponse
-  ManipulationServer::handle_move_eef_cancel(
-    const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::MoveEndEffector>> goal_handle)
-  {
-    RCLCPP_INFO(this->get_logger(), "Canceling goal: move eef");
-    (void)goal_handle;
-    return rclcpp_action::CancelResponse::ACCEPT;
-  }
+rclcpp_action::CancelResponse
+ManipulationServer::handle_move_eef_cancel(
+  const std::shared_ptr<rclcpp_action::ServerGoalHandle<manipulation_interfaces::action::
+  MoveEndEffector>> goal_handle)
+{
+  RCLCPP_INFO(this->get_logger(), "Canceling goal: move eef");
+  (void)goal_handle;
+  return rclcpp_action::CancelResponse::ACCEPT;
+}
 
 rclcpp_action::CancelResponse
 ManipulationServer::handle_pick_cancel(
@@ -657,14 +660,14 @@ ManipulationServer::execute_place(
     result->success = false;
     task_.clear();
     task_ = detach_object_task(goal->attached_object, node_);
-    execute_task(task_, node_);    
+    execute_task(task_, node_);
   }
 
- 
+
   has_picked_ = false;
   task_.clear();
   goal_handle->succeed(result);
-  
+
   auto all_objects = planning_interface_->getKnownObjectNames();
   planning_interface_->removeCollisionObjects(all_objects);
 }
@@ -692,7 +695,7 @@ ManipulationServer::execute_pick_from_pc(
     result->success = false;
   }
   task_.clear();
-  goal_handle->succeed(result); 
+  goal_handle->succeed(result);
 }
 
 void ManipulationServer::execute_generate_grasp_poses(

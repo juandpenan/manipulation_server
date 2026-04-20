@@ -13,6 +13,7 @@
   <depend>moveit_task_constructor_core</depend>
   <depend>manipulation_interfaces</depend>
   <depend>gpd</depend>
+  <exec_depend>tiago_moveit_config</exec_depend>
   <depend>rclcpp_lifecycle</depend>
   <depend>rclcpp_cascade_lifecycle</depend>
   <depend>rclcpp_components</depend>

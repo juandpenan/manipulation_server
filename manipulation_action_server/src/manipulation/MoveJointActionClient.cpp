@@ -14,15 +14,15 @@ MoveJointActionClient::MoveJointActionClient()
   declare_parameter("group_name", "");
   declare_parameter("joint_name", "");
   declare_parameter("joint_value", 0.0);
-  
-  
+
+
   get_parameter("group_name", goal_msg.group_name);
   get_parameter("joint_name", goal_msg.joint_name);
   get_parameter("joint_value", goal_msg.joint_value);
 
   RCLCPP_INFO(
     get_logger(), "Sending goal to move %s to value %.2f",
-      goal_msg.joint_name.c_str(), goal_msg.joint_value);
+    goal_msg.joint_name.c_str(), goal_msg.joint_value);
 
   send_goal(goal_msg);
 }
